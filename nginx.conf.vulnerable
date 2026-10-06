@@ -1,0 +1,67 @@
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    # Logs verbeux
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log debug;
+
+    server {
+        listen 80;
+        server_name localhost;
+
+        # ❌ VULNÉRABILITÉ : Expose la version de Nginx
+        server_tokens on;
+
+        # Proxy vers FastAPI
+        location /api {
+            proxy_pass http://app:8000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+        # Redirection racine vers API
+        location = / {
+            proxy_pass http://app:8000/;
+        }
+
+        location /login {
+            proxy_pass http://app:8000/login;
+        }
+
+        location /upload {
+            proxy_pass http://app:8000/upload;
+        }
+
+        location /files {
+            proxy_pass http://app:8000/files;
+        }
+
+        location /download {
+            proxy_pass http://app:8000/download;
+        }
+
+        location /debug {
+            proxy_pass http://app:8000/debug;
+        }
+
+        # ❌ MISCONFIGURATION M3 : Directory listing activé
+        location /uploads {
+            alias /app/uploads/;
+            autoindex on;  # ← VULNÉRABILITÉ : Liste tous les fichiers
+            autoindex_exact_size off;
+            autoindex_localtime on;
+        }
+
+        # Page d'erreur personnalisée (mais révèle le chemin)
+        error_page 500 502 503 504 /50x.html;
+        location = /50x.html {
+            root /usr/share/nginx/html;
+        }
+    }
+}

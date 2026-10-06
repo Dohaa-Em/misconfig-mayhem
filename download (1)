@@ -1,0 +1,21 @@
+# Environnement de config actif (ne jamais committer de .env réel)
+app/.env
+.env
+
+# Fichiers uploadés à l'exécution (garder le dossier, pas le contenu)
+uploads/*
+!uploads/.gitkeep
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+
+# Données / volumes
+data/
+postgres_data/
+minio_data/
+
+# Système
+.DS_Store
+*.swp
